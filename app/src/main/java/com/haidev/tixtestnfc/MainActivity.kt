@@ -13,37 +13,36 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.haidev.tixtestnfc.databinding.ActivityMainBinding
 
-
 class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+
     private var intentFiltersArray: Array<IntentFilter>? = null
     private val techListsArray = arrayOf(arrayOf(NfcF::class.java.name))
     private val nfcAdapter: NfcAdapter? by lazy {
         NfcAdapter.getDefaultAdapter(this)
     }
     private var pendingIntent: PendingIntent? = null
-    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        initUI()
+
+        //Check if NFC is available on device
+        checkNFC()
+    }
+
+    private fun initUI() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view: View = binding.getRoot()
         setContentView(view)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        binding.btnSave.setOnClickListener {
+            //TODO for save data to local storage
         }
-
-        //Check if NFC is available on device
-        checkNFC()
     }
 
     private fun checkNFC() {
@@ -69,7 +68,7 @@ class MainActivity : AppCompatActivity() {
             )
 
             if (nfcAdapter == null) {
-                val builder = AlertDialog.Builder(this@MainActivity, R.style.Base_Theme_TixTestNFC)
+                val builder = AlertDialog.Builder(this@MainActivity, R.style.MyAlertDialogStyle)
                 builder.setMessage("This device doesn't support NFC.")
                 builder.setPositiveButton("Cancel") { _, _ -> finish() }
                 val myDialog = builder.create()
@@ -77,7 +76,7 @@ class MainActivity : AppCompatActivity() {
                 myDialog.show()
 
             } else if (!nfcAdapter!!.isEnabled) {
-                val builder = AlertDialog.Builder(this@MainActivity, R.style.Base_Theme_TixTestNFC)
+                val builder = AlertDialog.Builder(this@MainActivity, R.style.MyAlertDialogStyle)
                 builder.setTitle("NFC Disabled")
                 builder.setMessage("Plesae Enable NFC")
 
@@ -105,7 +104,6 @@ class MainActivity : AppCompatActivity() {
             //Read the tech list of the tag
             val techList = tag?.techList
             if (techList?.isEmpty() == true) return
-
             if (techList != null) {
                 for (tech in techList) {
                     when (tech) {
@@ -130,13 +128,13 @@ class MainActivity : AppCompatActivity() {
                         }
                         //Check if the tag is not recognized
                         else -> {
-                            Log.d("NFC", "Teknologi tag tidak dikenali: $tech")
+                            Log.d("NFC", "Tag not recognized")
                         }
                     }
                 }
             }
         } else {
-            Toast.makeText(this, "Tag tidak dikenali", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Tag not recognized", Toast.LENGTH_SHORT).show()
         }
     }
 

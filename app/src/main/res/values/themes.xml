@@ -6,4 +6,6 @@
     </style>
 
     <style name="Theme.TixTestNFC" parent="Base.Theme.TixTestNFC" />
+
+    <style name="MyAlertDialogStyle" parent="ThemeOverlay.AppCompat.Dialog.Alert" />
 </resources>
