@@ -13,15 +13,20 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.haidev.tixtestnfc.R
+import com.haidev.tixtestnfc.data.local.entity.NFCEntity
 import com.haidev.tixtestnfc.databinding.ActivityMainBinding
+import com.haidev.tixtestnfc.ui.main.adapter.ItemNFCAdapter
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private val mainViewModel: MainViewModel by viewModels<MainViewModel>()
 
     private var intentFiltersArray: Array<IntentFilter>? = null
     private val techListsArray = arrayOf(arrayOf(NfcF::class.java.name))
@@ -30,12 +35,14 @@ class MainActivity : AppCompatActivity() {
     }
     private var pendingIntent: PendingIntent? = null
 
+    private lateinit var itemNFCAdapter: ItemNFCAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initUI()
 
         //Check if NFC is available on device
-        //checkNFC()
+        checkNFC()
     }
 
     private fun initUI() {
@@ -44,7 +51,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         binding.btnSave.setOnClickListener {
-            //TODO for save data to local storage
+            mainViewModel.insertNFC(
+                NFCEntity(
+                    serialNumber = binding.etSerialNumber.text.toString(),
+                    message = binding.etMessage.text.toString()
+                )
+            )
+        }
+
+        binding.rvNfcMessages.apply {
+            layoutManager =
+                LinearLayoutManager(this@MainActivity, LinearLayoutManager.VERTICAL, false)
+            setHasFixedSize(true)
+            itemNFCAdapter = ItemNFCAdapter()
+            adapter = itemNFCAdapter
+        }
+
+        mainViewModel.getAllNFC().observe(this) {
+            itemNFCAdapter.setData(it)
         }
     }
 
