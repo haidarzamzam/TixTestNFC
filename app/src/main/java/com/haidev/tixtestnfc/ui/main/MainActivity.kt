@@ -1,4 +1,4 @@
-package com.haidev.tixtestnfc
+package com.haidev.tixtestnfc.ui.main
 
 import android.app.PendingIntent
 import android.content.Intent
@@ -15,8 +15,11 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.haidev.tixtestnfc.R
 import com.haidev.tixtestnfc.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
@@ -32,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         initUI()
 
         //Check if NFC is available on device
-        checkNFC()
+        //checkNFC()
     }
 
     private fun initUI() {
