@@ -51,6 +51,7 @@
             android:background="@drawable/bg_edit_text"
             android:enabled="false"
             android:lines="4"
+            android:gravity="start|top"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@id/etSerialNumber"
             app:layout_constraintTop_toTopOf="@id/tvMessage" />

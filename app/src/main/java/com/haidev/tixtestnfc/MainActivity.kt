@@ -4,15 +4,22 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
 import android.nfc.NfcAdapter
+import android.nfc.Tag
+import android.nfc.tech.MifareClassic
+import android.nfc.tech.Ndef
 import android.nfc.tech.NfcF
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.haidev.tixtestnfc.databinding.ActivityMainBinding
+
 
 class MainActivity : AppCompatActivity() {
     private var intentFiltersArray: Array<IntentFilter>? = null
@@ -21,10 +28,14 @@ class MainActivity : AppCompatActivity() {
         NfcAdapter.getDefaultAdapter(this)
     }
     private var pendingIntent: PendingIntent? = null
+    private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view: View = binding.getRoot()
+        setContentView(view)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -79,5 +90,70 @@ class MainActivity : AppCompatActivity() {
         } catch (ex: Exception) {
             Toast.makeText(applicationContext, ex.message, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        val action = intent?.action
+        if (action == NfcAdapter.ACTION_TAG_DISCOVERED) {
+            val tag = if (android.os.Build.VERSION.SDK_INT >= 33) intent.getParcelableExtra(
+                NfcAdapter.EXTRA_TAG,
+                Tag::class.java
+            ) else intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG) ?: return
+
+            //Read the tech list of the tag
+            val techList = tag?.techList
+            if (techList?.isEmpty() == true) return
+
+            if (techList != null) {
+                for (tech in techList) {
+                    when (tech) {
+                        //Check if the tag is Mifare Classic
+                        MifareClassic::class.java.name -> {
+                            val mfc = MifareClassic.get(tag)
+                            val uid = mfc.tag.id
+                            val serialNumber =
+                                uid.joinToString(":") { byte -> String.format("%02X", byte) }
+                            binding.etSerialNumber.setText(serialNumber)
+                            binding.etMessage.setText("")
+                            binding.etMessage.isEnabled = true
+                            binding.btnSave.isEnabled = true
+                        }
+                        //Check if the tag contains data NDEF
+                        Ndef::class.java.name -> {
+                            val ndef = Ndef.get(tag)
+                            val message = ndef.cachedNdefMessage
+                            val record = message.records.first()
+                            val text = String(record.payload)
+                            binding.etMessage.setText(text.drop(3))
+                        }
+                        //Check if the tag is not recognized
+                        else -> {
+                            Log.d("NFC", "Teknologi tag tidak dikenali: $tech")
+                        }
+                    }
+                }
+            }
+        } else {
+            Toast.makeText(this, "Tag tidak dikenali", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        nfcAdapter?.enableForegroundDispatch(
+            this,
+            pendingIntent,
+            intentFiltersArray,
+            techListsArray
+        )
+    }
+
+    override fun onPause() {
+        if (this.isFinishing) {
+            nfcAdapter?.disableForegroundDispatch(this)
+        }
+        super.onPause()
     }
 }
