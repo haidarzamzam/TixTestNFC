@@ -107,10 +107,15 @@ class MainActivity : AppCompatActivity() {
                     dialogTapTag.show()
 
                     ndefRecordData = NdefRecordData(
+                        data.serialNumber,
                         NdefRecord.TNF_WELL_KNOWN,
                         NdefRecord.RTD_TEXT,
                         byteArrayOf(),
-                        data.message.toByteArray()
+                        byteArrayOf(
+                            0x02,
+                            'e'.code.toByte(),
+                            'n'.code.toByte()
+                        ) + data.message.toByteArray()
                     )
                 }
             })
@@ -191,10 +196,18 @@ class MainActivity : AppCompatActivity() {
         dialogTapTag.dismiss()
 
         if (tag != null) {
-            if (writeNdefMessage(tag, ndefRecordData)) {
-                Toast.makeText(this, "Success write data", Toast.LENGTH_SHORT).show()
+            val serialNumberTapTag =
+                tag.id.joinToString(":") { byte -> String.format("%02X", byte) }
+
+            if (serialNumberTapTag != ndefRecordData.serialNumber) {
+                Toast.makeText(this, "Serial number not match", Toast.LENGTH_SHORT).show()
+                return
             } else {
-                Toast.makeText(this, "Failed write data", Toast.LENGTH_SHORT).show()
+                if (writeNdefMessage(tag, ndefRecordData)) {
+                    Toast.makeText(this, "Success write data", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Failed write data", Toast.LENGTH_SHORT).show()
+                }
             }
         } else {
             Toast.makeText(this, "Tag not found", Toast.LENGTH_SHORT).show()
