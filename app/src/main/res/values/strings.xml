@@ -3,4 +3,8 @@
     <string name="serial_number">Serial Number</string>
     <string name="message">Message</string>
     <string name="save">Save</string>
+    <string name="option_menu">⋮</string>
+    <string name="delete">Delete</string>
+    <string name="update">Update</string>
+    <string name="sync">Sync</string>
 </resources>

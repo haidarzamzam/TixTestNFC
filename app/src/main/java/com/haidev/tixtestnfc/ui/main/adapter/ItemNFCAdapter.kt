@@ -3,9 +3,12 @@ package com.haidev.tixtestnfc.ui.main.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.haidev.tixtestnfc.R
 import com.haidev.tixtestnfc.data.local.entity.NFCEntity
 import com.haidev.tixtestnfc.databinding.ItemRowNfcBinding
+
 
 class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
     private var list = mutableListOf<NFCEntity>()
@@ -37,6 +40,20 @@ class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
 
             binding.tvNfcMessage.text = data.message
             binding.tvNfcSerialNumber.text = data.serialNumber
+            binding.tvActionMenu.setOnClickListener {
+                val popup = PopupMenu(it.context, it)
+                popup.inflate(R.menu.nfc_option_menu)
+                popup.setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        R.id.menuDelete -> {}
+                        R.id.menuUpdate -> {}
+                        R.id.menuSync -> {}
+                    }
+                    false
+                }
+                popup.show()
+
+            }
         }
     }
 

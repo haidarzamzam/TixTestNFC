@@ -72,16 +72,15 @@
         <View
             android:id="@+id/divider"
             android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:layout_marginTop="@dimen/_24dp"
-            android:background="@android:color/darker_gray"
+            android:layout_height="@dimen/_1dp"
+            android:layout_marginTop="@dimen/_16dp"
+            android:background="@color/grey"
             app:layout_constraintTop_toBottomOf="@id/btnSave" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvNfcMessages"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_8dp"
             android:nestedScrollingEnabled="true"
             app:layout_constraintTop_toBottomOf="@id/divider" />
     </androidx.constraintlayout.widget.ConstraintLayout>
