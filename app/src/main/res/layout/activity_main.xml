@@ -12,6 +12,17 @@
         android:layout_height="match_parent">
 
         <TextView
+            android:id="@+id/tvInformation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_24dp"
+            android:text="@string/tap_nfc_first_for_saving_data"
+            android:textAlignment="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
             android:id="@+id/tvSerialNumber"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -19,7 +30,7 @@
             android:layout_marginTop="@dimen/_24dp"
             android:text="@string/serial_number"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/tvInformation" />
 
         <EditText
             android:id="@+id/etSerialNumber"
@@ -76,6 +87,16 @@
             android:layout_marginTop="@dimen/_16dp"
             android:background="@color/grey"
             app:layout_constraintTop_toBottomOf="@id/btnSave" />
+
+        <TextView
+            android:id="@+id/tvNoData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_32dp"
+            android:text="@string/no_data_please_record_first"
+            android:textAlignment="center"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvNfcMessages"

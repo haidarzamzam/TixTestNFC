@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.haidev.tixtestnfc.R
 import com.haidev.tixtestnfc.data.local.entity.NFCEntity
@@ -122,7 +123,14 @@ class MainActivity : AppCompatActivity() {
 
         mainViewModel.getAllNFC().observe(this)
         {
-            itemNFCAdapter.setData(it)
+            if(it.isEmpty()) {
+                binding.tvNoData.isVisible = true
+                binding.rvNfcMessages.isVisible = false
+            } else {
+                binding.tvNoData.isVisible = false
+                binding.rvNfcMessages.isVisible = true
+                itemNFCAdapter.setData(it)
+            }
         }
     }
 

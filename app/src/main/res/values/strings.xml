@@ -7,4 +7,6 @@
     <string name="delete">Delete</string>
     <string name="update">Update</string>
     <string name="sync">Sync</string>
+    <string name="no_data_please_record_first">No Data, please record first</string>
+    <string name="tap_nfc_first_for_saving_data">Tap NFC first for saving data</string>
 </resources>
