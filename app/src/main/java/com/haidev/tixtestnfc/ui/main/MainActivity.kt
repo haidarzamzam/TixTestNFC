@@ -51,12 +51,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         binding.btnSave.setOnClickListener {
-            mainViewModel.insertNFC(
-                NFCEntity(
-                    serialNumber = binding.etSerialNumber.text.toString(),
-                    message = binding.etMessage.text.toString()
-                )
-            )
+            mainViewModel.checkNFC(binding.etSerialNumber.text.toString()).observe(this) {
+                if (it) {
+                    mainViewModel.updateNFC(
+                        NFCEntity(
+                            serialNumber = binding.etSerialNumber.text.toString(),
+                            message = binding.etMessage.text.toString()
+                        )
+                    )
+                } else {
+                    mainViewModel.insertNFC(
+                        NFCEntity(
+                            serialNumber = binding.etSerialNumber.text.toString(),
+                            message = binding.etMessage.text.toString()
+                        )
+                    )
+                }
+            }
         }
 
         binding.rvNfcMessages.apply {
@@ -141,6 +152,9 @@ class MainActivity : AppCompatActivity() {
                             val serialNumber =
                                 uid.joinToString(":") { byte -> String.format("%02X", byte) }
                             binding.etSerialNumber.setText(serialNumber)
+                            mainViewModel.checkNFC(serialNumber).observe(this) {
+                                if (it) binding.btnSave.text = "Update" else binding.btnSave.text = "Save"
+                            }
                             binding.etMessage.setText("")
                             binding.etMessage.isEnabled = true
                             binding.btnSave.isEnabled = true

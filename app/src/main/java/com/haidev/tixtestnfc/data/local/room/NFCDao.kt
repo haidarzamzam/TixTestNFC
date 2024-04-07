@@ -14,6 +14,9 @@ interface NFCDao {
     @Query("SELECT * FROM nfc")
     fun getAllNFC(): LiveData<List<NFCEntity>>
 
+    @Query("SELECT EXISTS(SELECT * FROM nfc WHERE serial_number = :serialNumber)")
+    fun checkNFC(serialNumber: String): LiveData<Boolean>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertNFC(nfcData: NFCEntity)
 
