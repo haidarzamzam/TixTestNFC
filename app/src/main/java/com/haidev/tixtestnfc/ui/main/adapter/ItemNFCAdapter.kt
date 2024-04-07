@@ -17,6 +17,8 @@ class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
 
     interface ItemClickListener {
         fun onItemDelete(view: View, data: NFCEntity)
+        fun onItemUpdate(view: View, data: NFCEntity)
+        fun onItemSync(view: View, data: NFCEntity)
     }
 
     fun setOptionItemClickListener(itemClickListener: ItemClickListener?) {
@@ -45,8 +47,13 @@ class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
                             itemClickListener?.onItemDelete(it, data)
                         }
 
-                        R.id.menuUpdate -> {}
-                        R.id.menuSync -> {}
+                        R.id.menuUpdate -> {
+                            itemClickListener?.onItemUpdate(it, data)
+                        }
+
+                        R.id.menuSync -> {
+                            itemClickListener?.onItemDelete(it, data)
+                        }
                     }
                     false
                 }

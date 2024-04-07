@@ -51,22 +51,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         binding.btnSave.setOnClickListener {
-            mainViewModel.checkNFC(binding.etSerialNumber.text.toString()).observe(this) {
-                if (it) {
-                    mainViewModel.updateNFC(
-                        NFCEntity(
-                            serialNumber = binding.etSerialNumber.text.toString(),
-                            message = binding.etMessage.text.toString()
-                        )
+            if (mainViewModel.getNFC(binding.etSerialNumber.text.toString()) != null) {
+                mainViewModel.updateNFC(
+                    NFCEntity(
+                        serialNumber = binding.etSerialNumber.text.toString(),
+                        message = binding.etMessage.text.toString()
                     )
-                } else {
-                    mainViewModel.insertNFC(
-                        NFCEntity(
-                            serialNumber = binding.etSerialNumber.text.toString(),
-                            message = binding.etMessage.text.toString()
-                        )
+                )
+            } else {
+                mainViewModel.insertNFC(
+                    NFCEntity(
+                        serialNumber = binding.etSerialNumber.text.toString(),
+                        message = binding.etMessage.text.toString()
                     )
-                }
+                )
             }
         }
 
@@ -78,13 +76,27 @@ class MainActivity : AppCompatActivity() {
             adapter = itemNFCAdapter
         }
 
-        itemNFCAdapter.setOptionItemClickListener(object : ItemNFCAdapter.ItemClickListener {
-            override fun onItemDelete(view: View, data: NFCEntity) {
-                mainViewModel.deleteNFC(data)
-            }
-        })
+        itemNFCAdapter.setOptionItemClickListener(
+            object : ItemNFCAdapter.ItemClickListener {
+                override fun onItemDelete(view: View, data: NFCEntity) {
+                    mainViewModel.deleteNFC(data)
+                }
 
-        mainViewModel.getAllNFC().observe(this) {
+                override fun onItemUpdate(view: View, data: NFCEntity) {
+                    binding.etSerialNumber.setText(data.serialNumber)
+                    binding.etMessage.setText(data.message)
+                    binding.etMessage.isEnabled = true
+                    binding.btnSave.isEnabled = true
+                    binding.btnSave.text = "Update"
+                }
+
+                override fun onItemSync(view: View, data: NFCEntity) {
+                    TODO("Not yet implemented")
+                }
+            })
+
+        mainViewModel.getAllNFC().observe(this)
+        {
             itemNFCAdapter.setData(it)
         }
     }
@@ -158,13 +170,11 @@ class MainActivity : AppCompatActivity() {
                             val serialNumber =
                                 uid.joinToString(":") { byte -> String.format("%02X", byte) }
                             binding.etSerialNumber.setText(serialNumber)
-                            mainViewModel.checkNFC(serialNumber).observe(this) {
-                                if (it) binding.btnSave.text = "Update" else binding.btnSave.text =
-                                    "Save"
-                            }
                             binding.etMessage.setText("")
                             binding.etMessage.isEnabled = true
                             binding.btnSave.isEnabled = true
+                            if (mainViewModel.getNFC(binding.etSerialNumber.text.toString()) != null) binding.btnSave.text =
+                                "Update" else binding.btnSave.text = "Save"
                         }
                         //Check if the tag contains data NDEF
                         Ndef::class.java.name -> {

@@ -12,7 +12,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(private val newsRepository: NFCRepository) : ViewModel() {
     fun getAllNFC() = newsRepository.getAllFC()
 
-    fun checkNFC(serialNumber: String) = newsRepository.checkNFC(serialNumber)
+    fun getNFC(serialNumber: String) = newsRepository.getNFC(serialNumber)
 
     fun insertNFC(nfcEntity: NFCEntity) {
         viewModelScope.launch {

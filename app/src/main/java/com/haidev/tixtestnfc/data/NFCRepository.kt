@@ -12,8 +12,8 @@ class NFCRepository @Inject constructor(
         return nfcDao.getAllNFC()
     }
 
-    fun checkNFC(serialNumber: String): LiveData<Boolean> {
-        return nfcDao.checkNFC(serialNumber)
+    fun getNFC(serialNumber: String): NFCEntity {
+        return nfcDao.getNFC(serialNumber)
     }
 
     fun insertNFC(nfcEntity: NFCEntity) {
