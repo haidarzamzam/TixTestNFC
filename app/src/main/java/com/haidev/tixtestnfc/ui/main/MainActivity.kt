@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
             }
+            resetInputUI()
         }
 
         binding.rvNfcMessages.apply {
@@ -123,7 +124,7 @@ class MainActivity : AppCompatActivity() {
 
         mainViewModel.getAllNFC().observe(this)
         {
-            if(it.isEmpty()) {
+            if (it.isEmpty()) {
                 binding.tvNoData.isVisible = true
                 binding.rvNfcMessages.isVisible = false
             } else {
@@ -180,6 +181,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun resetInputUI() {
+        binding.etSerialNumber.setText("")
+        binding.etMessage.setText("")
+        binding.etMessage.isEnabled = false
+        binding.btnSave.isEnabled = false
+        binding.btnSave.text = "Save"
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
@@ -226,33 +235,37 @@ class MainActivity : AppCompatActivity() {
 
     private fun writeNdefMessage(tag: Tag, ndefRecordData: NdefRecordData): Boolean {
         val ndef = Ndef.get(tag)
-        try {
-            ndef.connect()
+        if (ndef != null) {
+            try {
+                ndef.connect()
 
-            if (!ndef.isWritable) {
-                return false //Tag can't be written
-            }
+                if (!ndef.isWritable) {
+                    return false //Tag can't be written
+                }
 
-            val message = NdefMessage(
-                NdefRecord(
-                    ndefRecordData.tnf,
-                    ndefRecordData.type,
-                    ndefRecordData.id,
-                    ndefRecordData.payload
+                val message = NdefMessage(
+                    NdefRecord(
+                        ndefRecordData.tnf,
+                        ndefRecordData.type,
+                        ndefRecordData.id,
+                        ndefRecordData.payload
+                    )
                 )
-            )
 
-            if (ndef.maxSize < message.toByteArray().size) {
-                return false //Message is too large for the tag
+                if (ndef.maxSize < message.toByteArray().size) {
+                    return false //Message is too large for the tag
+                }
+
+                ndef.writeNdefMessage(message)
+                return true
+            } catch (e: Exception) {
+                Log.e("writeNdefMessage", "Error writing NDEF message", e)
+                return false
+            } finally {
+                ndef.close()
             }
-
-            ndef.writeNdefMessage(message)
-            return true
-        } catch (e: Exception) {
-            Log.e("writeNdefMessage", "Error writing NDEF message", e)
+        } else {
             return false
-        } finally {
-            ndef.close()
         }
     }
 
