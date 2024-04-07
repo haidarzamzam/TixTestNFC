@@ -3,6 +3,8 @@ package com.haidev.tixtestnfc.ui.main
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
+import android.nfc.NdefMessage
+import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.MifareClassic
@@ -19,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.haidev.tixtestnfc.R
 import com.haidev.tixtestnfc.data.local.entity.NFCEntity
+import com.haidev.tixtestnfc.data.nfc.NdefRecordData
 import com.haidev.tixtestnfc.databinding.ActivityMainBinding
 import com.haidev.tixtestnfc.ui.main.adapter.ItemNFCAdapter
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,6 +39,9 @@ class MainActivity : AppCompatActivity() {
     private var pendingIntent: PendingIntent? = null
 
     private lateinit var itemNFCAdapter: ItemNFCAdapter
+    private var isWrite: Boolean = false
+    private lateinit var dialogTapTag: AlertDialog
+    private lateinit var ndefRecordData: NdefRecordData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,7 +97,21 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onItemSync(view: View, data: NFCEntity) {
-                    TODO("Not yet implemented")
+                    isWrite = true
+
+                    val builder = AlertDialog.Builder(this@MainActivity, R.style.MyAlertDialogStyle)
+                    builder.setMessage("Tap the NFC to write data.")
+                    builder.setPositiveButton("Cancel") { _, _ -> isWrite = false }
+                    dialogTapTag = builder.create()
+                    dialogTapTag.setCanceledOnTouchOutside(false)
+                    dialogTapTag.show()
+
+                    ndefRecordData = NdefRecordData(
+                        NdefRecord.TNF_WELL_KNOWN,
+                        NdefRecord.RTD_TEXT,
+                        byteArrayOf(),
+                        data.message.toByteArray()
+                    )
                 }
             })
 
@@ -157,42 +177,97 @@ class MainActivity : AppCompatActivity() {
                 Tag::class.java
             ) else intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG) ?: return
 
-            //Read the tech list of the tag
-            val techList = tag?.techList
-            if (techList?.isEmpty() == true) return
-            if (techList != null) {
-                for (tech in techList) {
-                    when (tech) {
-                        //Check if the tag is Mifare Classic
-                        MifareClassic::class.java.name -> {
-                            val mfc = MifareClassic.get(tag)
-                            val uid = mfc.tag.id
-                            val serialNumber =
-                                uid.joinToString(":") { byte -> String.format("%02X", byte) }
-                            binding.etSerialNumber.setText(serialNumber)
-                            binding.etMessage.setText("")
-                            binding.etMessage.isEnabled = true
-                            binding.btnSave.isEnabled = true
-                            if (mainViewModel.getNFC(binding.etSerialNumber.text.toString()) != null) binding.btnSave.text =
-                                "Update" else binding.btnSave.text = "Save"
-                        }
-                        //Check if the tag contains data NDEF
-                        Ndef::class.java.name -> {
-                            val ndef = Ndef.get(tag)
-                            val message = ndef.cachedNdefMessage
-                            val record = message.records.first()
-                            val text = String(record.payload)
-                            binding.etMessage.setText(text.drop(3))
-                        }
-                        //Check if the tag is not recognized
-                        else -> {
-                            Log.d("NFC", "Tag not recognized")
-                        }
-                    }
-                }
+            if (isWrite) {
+                writeNFCTag(tag)
+            } else {
+                readNFCTag(tag)
             }
         } else {
             Toast.makeText(this, "Tag not recognized", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun writeNFCTag(tag: Tag?) {
+        dialogTapTag.dismiss()
+
+        if (tag != null) {
+            if (writeNdefMessage(tag, ndefRecordData)) {
+                Toast.makeText(this, "Success write data", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Failed write data", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Tag not found", Toast.LENGTH_SHORT).show()
+        }
+
+        isWrite = false
+    }
+
+    private fun writeNdefMessage(tag: Tag, ndefRecordData: NdefRecordData): Boolean {
+        val ndef = Ndef.get(tag)
+        try {
+            ndef.connect()
+
+            if (!ndef.isWritable) {
+                return false //Tag can't be written
+            }
+
+            val message = NdefMessage(
+                NdefRecord(
+                    ndefRecordData.tnf,
+                    ndefRecordData.type,
+                    ndefRecordData.id,
+                    ndefRecordData.payload
+                )
+            )
+
+            if (ndef.maxSize < message.toByteArray().size) {
+                return false //Message is too large for the tag
+            }
+
+            ndef.writeNdefMessage(message)
+            return true
+        } catch (e: Exception) {
+            Log.e("writeNdefMessage", "Error writing NDEF message", e)
+            return false
+        } finally {
+            ndef.close()
+        }
+    }
+
+    private fun readNFCTag(tag: Tag?) {
+        val techList = tag?.techList
+        if (techList?.isEmpty() == true) return
+        if (techList != null) {
+            for (tech in techList) {
+                when (tech) {
+                    //Check if the tag is Mifare Classic
+                    MifareClassic::class.java.name -> {
+                        val mfc = MifareClassic.get(tag)
+                        val uid = mfc.tag.id
+                        val serialNumber =
+                            uid.joinToString(":") { byte -> String.format("%02X", byte) }
+                        binding.etSerialNumber.setText(serialNumber)
+                        binding.etMessage.setText("")
+                        binding.etMessage.isEnabled = true
+                        binding.btnSave.isEnabled = true
+                        if (mainViewModel.getNFC(binding.etSerialNumber.text.toString()) != null) binding.btnSave.text =
+                            "Update" else binding.btnSave.text = "Save"
+                    }
+                    //Check if the tag contains data NDEF
+                    Ndef::class.java.name -> {
+                        val ndef = Ndef.get(tag)
+                        val message = ndef.cachedNdefMessage
+                        val record = message.records.first()
+                        val text = String(record.payload)
+                        binding.etMessage.setText(text.drop(3))
+                    }
+                    //Check if the tag is not recognized
+                    else -> {
+                        Log.d("NFC", "Tag not recognized")
+                    }
+                }
+            }
         }
     }
 

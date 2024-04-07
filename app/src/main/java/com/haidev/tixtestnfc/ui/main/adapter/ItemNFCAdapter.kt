@@ -52,7 +52,7 @@ class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
                         }
 
                         R.id.menuSync -> {
-                            itemClickListener?.onItemDelete(it, data)
+                            itemClickListener?.onItemSync(it, data)
                         }
                     }
                     false
