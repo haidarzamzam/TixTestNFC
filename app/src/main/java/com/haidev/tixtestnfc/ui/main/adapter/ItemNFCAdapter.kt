@@ -16,10 +16,10 @@ class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
     private var itemClickListener: ItemClickListener? = null
 
     interface ItemClickListener {
-        fun onItemClickDetail(view: View, data: NFCEntity)
+        fun onItemDelete(view: View, data: NFCEntity)
     }
 
-    fun setItemClickListener(itemClickListener: ItemClickListener?) {
+    fun setOptionItemClickListener(itemClickListener: ItemClickListener?) {
         this.itemClickListener = itemClickListener
     }
 
@@ -34,10 +34,6 @@ class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
         fun bindItem(
             data: NFCEntity
         ) {
-            binding.root.setOnClickListener {
-                itemClickListener?.onItemClickDetail(it, data)
-            }
-
             binding.tvNfcMessage.text = data.message
             binding.tvNfcSerialNumber.text = data.serialNumber
             binding.tvActionMenu.setOnClickListener {
@@ -45,7 +41,10 @@ class ItemNFCAdapter : RecyclerView.Adapter<ItemNFCAdapter.ViewHolder>() {
                 popup.inflate(R.menu.nfc_option_menu)
                 popup.setOnMenuItemClickListener { item ->
                     when (item.itemId) {
-                        R.id.menuDelete -> {}
+                        R.id.menuDelete -> {
+                            itemClickListener?.onItemDelete(it, data)
+                        }
+
                         R.id.menuUpdate -> {}
                         R.id.menuSync -> {}
                     }

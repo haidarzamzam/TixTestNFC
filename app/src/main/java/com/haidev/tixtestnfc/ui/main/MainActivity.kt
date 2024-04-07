@@ -78,6 +78,12 @@ class MainActivity : AppCompatActivity() {
             adapter = itemNFCAdapter
         }
 
+        itemNFCAdapter.setOptionItemClickListener(object : ItemNFCAdapter.ItemClickListener {
+            override fun onItemDelete(view: View, data: NFCEntity) {
+                mainViewModel.deleteNFC(data)
+            }
+        })
+
         mainViewModel.getAllNFC().observe(this) {
             itemNFCAdapter.setData(it)
         }
@@ -153,7 +159,8 @@ class MainActivity : AppCompatActivity() {
                                 uid.joinToString(":") { byte -> String.format("%02X", byte) }
                             binding.etSerialNumber.setText(serialNumber)
                             mainViewModel.checkNFC(serialNumber).observe(this) {
-                                if (it) binding.btnSave.text = "Update" else binding.btnSave.text = "Save"
+                                if (it) binding.btnSave.text = "Update" else binding.btnSave.text =
+                                    "Save"
                             }
                             binding.etMessage.setText("")
                             binding.etMessage.isEnabled = true
